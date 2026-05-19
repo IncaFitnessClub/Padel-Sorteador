@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pádel Sorteador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --court: #1a3a2a;
+    --court-light: #22503a;
+    --line: #ffffff22;
+    --green: #4ade80;
+    --green-dim: #16a34a;
+    --yellow: #facc15;
+    --white: #f8fafc;
+    --muted: #94a3b8;
+    --card-bg: #0f2a1e;
+    --card-border: #2d5a3d;
+    --radius: 16px;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background-color: var(--court);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  body {
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 59px, var(--line) 59px, var(--line) 60px),
+      repeating-linear-gradient(90deg, transparent, transparent 59px, var(--line) 59px, var(--line) 60px);
+  }
+
+  .wrapper {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .ball {
+    width: 52px;
+    height: 52px;
+    background: var(--yellow);
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 0 6px #facc1522, 0 0 0 12px #facc1511;
+    animation: pulse 2.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 6px #facc1522, 0 0 0 12px #facc1511; }
+    50% { box-shadow: 0 0 0 10px #facc1533, 0 0 0 20px #facc1515; }
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    color: var(--white);
+  }
+
+  h1 span { color: var(--green); }
+
+  .tagline {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+
+  .players-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .player-slot {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .player-slot:focus-within {
+    border-color: var(--green);
+  }
+
+  .player-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--court-light);
+    border: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  .player-slot input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .player-slot input::placeholder {
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .sort-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--green);
+    color: #0a1f12;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sort-btn:hover { background: #86efac; }
+  .sort-btn:active { transform: scale(0.97); }
+
+  .sort-btn .btn-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    transform: scale(0);
+    animation: ripple 0.5s linear;
+    pointer-events: none;
+  }
+
+  @keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  /* RESULT */
+  .result-section {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .result-section.show { display: flex; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .teams-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .team-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+
+  .team-card.team-a { border-top: 3px solid var(--green); }
+  .team-card.team-b { border-top: 3px solid var(--yellow); }
+
+  .team-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .team-a .team-tag { color: var(--green); }
+  .team-b .team-tag { color: var(--yellow); }
+
+  .player-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .team-a .avatar { background: #166534; color: #bbf7d0; }
+  .team-b .avatar { background: #713f12; color: #fef08a; }
+
+  .pill-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--white);
+  }
+
+  .vs-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .saque-banner {
+    background: linear-gradient(135deg, #713f12, #854d0e);
+    border: 1px solid #a16207;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .saque-icon { font-size: 26px; }
+
+  .saque-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fde68a;
+    margin-bottom: 3px;
+  }
+
+  .saque-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.06em;
+    color: var(--yellow);
+  }
+
+  .historial-toggle {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .historial-toggle:hover { border-color: var(--green-dim); color: var(--white); }
+
+  .historial-list { display: none; }
+  .historial-list.open { display: block; }
+
+  .historial-item {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .historial-item:last-child { border-bottom: none; }
+  .historial-item .h-time { font-size: 12px; color: #475569; white-space: nowrap; }
+
+  .divider {
+    height: 1px;
+    background: var(--line);
+    margin: 0.25rem 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="ball">🎾</div>
+    <h1>PÁDEL <span>SORT</span></h1>
+    <p class="tagline">Sin peleas. Sin excusas. Pura cancha.</p>
+  </header>
+
+  <div class="section-label">Jugadores</div>
+  <div class="players-grid">
+    <div class="player-slot">
+      <div class="player-num">1</div>
+      <input id="p1" type="text" placeholder="Nombre..." autocomplete="off" />
+    </div>
+    <div class="player-slot">
+      <div class="player-num">2</div>
+      <input id="p2" type="text" placeholder="Nombre..." autocomplete="off" />
+    </div>
+    <div class="player-slot">
+      <div class="player-num">3</div>
+      <input id="p3" type="text" placeholder="Nombre..." autocomplete="off" />
+    </div>
+    <div class="player-slot">
+      <div class="player-num">4</div>
+      <input id="p4" type="text" placeholder="Nombre..." autocomplete="off" />
+    </div>
+  </div>
+
+  <button class="sort-btn" id="sortBtn">🎲 SORTEAR PAREJAS</button>
+
+  <div class="result-section" id="resultSection">
+    <div class="result-header">— Resultado del sorteo —</div>
+
+    <div class="teams-row">
+      <div class="team-card team-a" id="teamA"></div>
+      <div class="vs-text">VS</div>
+      <div class="team-card team-b" id="teamB"></div>
+    </div>
+
+    <div class="saque-banner">
+      <div class="saque-icon">🏓</div>
+      <div>
+        <div class="saque-label">Primer saque</div>
+        <div class="saque-name" id="saqueNombre"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="historial-toggle" id="historialBtn" onclick="toggleHistorial()">▾ Ver historial de sorteos</button>
+    <div class="historial-list" id="historialList"></div>
+  </div>
+</div>
+
+<script>
+  const pairings = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+  let lastPairingIdx = -1;
+  let historial = [];
+
+  function names() {
+    return [1,2,3,4].map(n => {
+      const v = document.getElementById('p'+n).value.trim();
+      return v || 'Jugador '+n;
+    });
+  }
+
+  function initials(name) {
+    const p = name.trim().split(' ');
+    return p.length >= 2 ? (p[0][0]+p[1][0]).toUpperCase() : name.substring(0,2).toUpperCase();
+  }
+
+  function pickPairing() {
+    const opts = pairings.map((_,i)=>i).filter(i=>i!==lastPairingIdx);
+    return opts[Math.floor(Math.random()*opts.length)];
+  }
+
+  function renderTeam(el, players, cls) {
+    const tag = cls === 'team-a' ? 'EQUIPO A' : 'EQUIPO B';
+    el.innerHTML = `<div class="team-tag">${tag}</div>` +
+      players.map(p => `<div class="player-pill"><div class="avatar">${initials(p)}</div><span class="pill-name">${p}</span></div>`).join('');
+  }
+
+  function addRipple(btn, e) {
+    const r = document.createElement('span');
+    r.className = 'btn-ripple';
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+    btn.appendChild(r);
+    r.addEventListener('animationend', () => r.remove());
+  }
+
+  document.getElementById('sortBtn').addEventListener('click', function(e) {
+    addRipple(this, e);
+    const ns = names();
+    const idx = pickPairing();
+    lastPairingIdx = idx;
+    const [a,b] = pairings[idx];
+    const rest = [0,1,2,3].filter(i=>i!==a&&i!==b);
+    const tA = [ns[a], ns[b]];
+    const tB = [ns[rest[0]], ns[rest[1]]];
+    const all = [...tA, ...tB];
+    const saque = all[Math.floor(Math.random()*4)];
+
+    renderTeam(document.getElementById('teamA'), tA, 'team-a');
+    renderTeam(document.getElementById('teamB'), tB, 'team-b');
+    document.getElementById('saqueNombre').textContent = saque + ' saca primero';
+
+    const sec = document.getElementById('resultSection');
+    sec.classList.remove('show');
+    void sec.offsetWidth;
+    sec.classList.add('show');
+
+    const now = new Date();
+    const t = now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+    historial.unshift({ tA, tB, saque, t });
+    if (historial.length > 10) historial.pop();
+
+    if (document.getElementById('historialList').classList.contains('open')) renderHistorial();
+  });
+
+  function renderHistorial() {
+    const list = document.getElementById('historialList');
+    if (!historial.length) { list.innerHTML = '<div class="historial-item">Todavía no hay sorteos.</div>'; return; }
+    list.innerHTML = historial.map(h =>
+      `<div class="historial-item"><span>${h.tA.join(' & ')} vs ${h.tB.join(' & ')} · saque: ${h.saque}</span><span class="h-time">${h.t}</span></div>`
+    ).join('');
+  }
+
+  let histOpen = false;
+  function toggleHistorial() {
+    histOpen = !histOpen;
+    const list = document.getElementById('historialList');
+    const btn = document.getElementById('historialBtn');
+    list.classList.toggle('open', histOpen);
+    btn.textContent = histOpen ? '▴ Ocultar historial' : '▾ Ver historial de sorteos';
+    if (histOpen) renderHistorial();
+  }
+</script>
+</body>
+</html>
